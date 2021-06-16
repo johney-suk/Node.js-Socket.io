@@ -1,0 +1,119 @@
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font: 13px Helvetica, Arial;
+    }
+
+    form {
+      background: #000;
+      padding: 3px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+
+    form input {
+      border: 0;
+      padding: 10px;
+      width: 90%;
+      margin-right: .5%;
+    }
+
+    form button {
+      width: 9%;
+      background: rgb(130, 224, 255);
+      border: none;
+      padding: 10px;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages li {
+      padding: 5px 10px;
+    }
+
+    #messages li:nth-child(odd) {
+      background: #eee;
+    }
+  </style>
+</head>
+<body>
+  <a href="chat.ejs" value="Room1">Room1</a>
+  <a href="chat.ejs" value="Room2">Room2</a>
+<div id="rooms">
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+  $(() => {
+    const name = prompt('What your name');
+
+    console.log(name);
+
+    $.ajax({
+        method: "post",
+        data: name,
+        url: "/nickname",
+        success: function(res){
+        },
+        error: function(e){
+          $(".rooms").html("<h3 style='color: red'>Problem Occured<h3>");
+        }
+    })
+
+
+    const socket = io();
+
+    let room = ['room1', 'room2'];
+
+    socket.on('enteredLobby', function(nickNameArr){
+					editUsers(nickNameArr);
+		});
+    
+    $('select').change(() => {
+      socket.emit('leaveRoom', num, name);
+      num++;
+      num = num % 2;
+      socket.emit('joinRoom', num, name);
+    });
+
+    function editUsers(nickNameArr){
+      $('#rooms').empty();
+
+      for(person in nickNameArr){
+        console.log(person);
+        $('#rooms').append($('<a href="#" class="enterBtn">'+nickNameArr[person]+'</a>'));
+      }
+		}
+
+    $("enterBtn").click(() => {
+      $.ajax({
+        method: "post",
+        data: $(this).val(),
+        url: "/enter",
+        success: function(data){
+          location.href = "/socket/chat/"+chatRoomId;
+        },
+        error: function(e){
+          $(".ChatListTitle").html("<h3 style='color: red'>"+e.responseJSON.message+"<h3>");
+        }
+      })
+    })
+
+  });
+</script>
+</body>
+</html>
